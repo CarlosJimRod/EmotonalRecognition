@@ -54,6 +54,7 @@ import com.google.mlkit.vision.demo.preference.PreferenceUtils
 import com.google.mlkit.vision.demo.preference.SettingsActivity
 import com.google.mlkit.vision.demo.preference.SettingsActivity.LaunchSource
 import com.google.mlkit.vision.demo.tflite.Classifier
+import com.google.mlkit.vision.demo.tflite.EmotionClassifier
 import com.google.mlkit.vision.face.Face
 
 /** Live preview demo app for ML Kit APIs using CameraX. */
@@ -244,6 +245,16 @@ class CameraXLivePreviewActivity :
                                 override fun onSuccess(faceExpression: Classifier.Recognition) {
                                     findViewById<TextView>(R.id.result_label).text =
                                         faceExpression.title
+                                    if (faceExpression.id.equals(EmotionClassifier.EmotionType.Happy)){
+                                        //Enviar a Firebase HAPPY
+                                        //Actualizar un flag que me indique que no tengo que actualizar
+                                        //Firebase hasta que cambie de imagen
+                                    } else if (faceExpression.id.equals(EmotionClassifier.EmotionType.Sad)){
+                                        //Enviar a Firebase SAD
+
+                                        //Actualizar un flag que me indique que no tengo que actualizar
+                                        //Firebase hasta que cambie de imagen
+                                    }
                                 }
 
                                 override fun onError(e: Exception) {

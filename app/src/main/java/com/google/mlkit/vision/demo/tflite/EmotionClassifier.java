@@ -8,8 +8,10 @@ import org.tensorflow.lite.support.common.ops.NormalizeOp;
 
 import java.io.IOException;
 
-public class EmotionClassifier  extends Classifier {
-    /** Float MobileNet requires additional normalization of the used input. */
+public class EmotionClassifier extends Classifier {
+    /**
+     * Float MobileNet requires additional normalization of the used input.
+     */
     private static final float IMAGE_MEAN = 0f;
 
     private static final float IMAGE_STD = 255f;
@@ -22,14 +24,16 @@ public class EmotionClassifier  extends Classifier {
 
     private static final float PROBABILITY_STD = 1.0f;
 
+    public enum EmotionType {Uncertain, Angry, Disgusted, Fearful, Happy, Neutral, Sad, Surprised}
+
     /**
      * Initializes a {@code ClassifierFloatMobileNet}.
      *
      * @param activity
      */
-    public EmotionClassifier (Activity activity )
+    public EmotionClassifier(Activity activity)
             throws IOException {
-        super(activity );
+        super(activity);
     }
 
     @Override
