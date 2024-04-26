@@ -19,6 +19,7 @@ package com.google.mlkit.vision.demo;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -278,5 +279,14 @@ public class BitmapUtils {
       }
       rowStart += plane.getRowStride();
     }
+  }
+
+  public static Bitmap cropBitmap(Bitmap bitmap, Rect rect) {
+    int w = rect.right - rect.left;
+    int h = rect.bottom - rect.top;
+    Bitmap ret = Bitmap.createBitmap(w, h, bitmap.getConfig());
+    Canvas canvas = new Canvas(ret);
+    canvas.drawBitmap(bitmap, -rect.left, -rect.top, null);
+    return ret;
   }
 }

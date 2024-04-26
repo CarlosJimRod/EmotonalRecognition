@@ -16,17 +16,19 @@
 
 package com.google.mlkit.vision.demo.kotlin.facedetector
 
+import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
-import android.widget.TextView
 import androidx.annotation.RequiresApi
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.demo.BitmapUtils
 import com.google.mlkit.vision.demo.GraphicOverlay
-import com.google.mlkit.vision.demo.R
-import com.google.mlkit.vision.demo.kotlin.CameraXLivePreviewActivity
 import com.google.mlkit.vision.demo.kotlin.VisionProcessorBase
+import com.google.mlkit.vision.demo.tflite.Classifier
+import com.google.mlkit.vision.demo.tflite.EmotionClassifier
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
@@ -35,133 +37,155 @@ import com.google.mlkit.vision.face.FaceLandmark
 import java.util.Locale
 
 /** Face Detector Demo.  */
-class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptions?) :
-  VisionProcessorBase<List<Face>>(context) {
+class FaceDetectorProcessor(
+    context: Context,
+    detectorOptions: FaceDetectorOptions?,
+    val callback: Callback
+) :
+    VisionProcessorBase<List<Face>>(context) {
 
-  private val detector: FaceDetector
+    private val detector: FaceDetector
 
-  private val context = context
+    private val context = context
 
-  init {
-    val options = detectorOptions
-      ?: FaceDetectorOptions.Builder()
-        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-        .enableTracking()
-        .build()
+    private var classifier: Classifier
 
-    detector = FaceDetection.getClient(options)
+    init {
+        val options = detectorOptions
+            ?: FaceDetectorOptions.Builder()
+                .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                .enableTracking()
+                .build()
 
-    Log.v(MANUAL_TESTING_LOG, "Face detector options: $options")
-  }
-
-  override fun stop() {
-    super.stop()
-    detector.close()
-  }
-
-  override fun detectInImage(image: InputImage): Task<List<Face>> {
-    return detector.process(image)
-  }
-
-  @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-  override fun onSuccess(faces: List<Face>, graphicOverlay: GraphicOverlay) {
-    for (face in faces) {
-      graphicOverlay.add(FaceGraphic(graphicOverlay, face,context))
-      logExtrasForTesting(face)
-
-      //val activity = context as? CameraXLivePreviewActivity
-
-      //activity?.showResult(face)
-
+        detector = FaceDetection.getClient(options)
+        classifier = EmotionClassifier(context as Activity)
     }
-  }
 
-  override fun onFailure(e: Exception) {
-    Log.e(TAG, "Face detection failed $e")
-  }
+    override fun stop() {
+        super.stop()
+        detector.close()
+    }
 
-  companion object {
-    private const val TAG = "FaceDetectorProcessor"
-    private fun logExtrasForTesting(face: Face?) {
-      if (face != null) {
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face bounding box: " + face.boundingBox.flattenToString()
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face Euler Angle X: " + face.headEulerAngleX
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face Euler Angle Y: " + face.headEulerAngleY
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face Euler Angle Z: " + face.headEulerAngleZ
-        )
-        // All landmarks
-        val landMarkTypes = intArrayOf(
-          FaceLandmark.MOUTH_BOTTOM,
-          FaceLandmark.MOUTH_RIGHT,
-          FaceLandmark.MOUTH_LEFT,
-          FaceLandmark.RIGHT_EYE,
-          FaceLandmark.LEFT_EYE,
-          FaceLandmark.RIGHT_EAR,
-          FaceLandmark.LEFT_EAR,
-          FaceLandmark.RIGHT_CHEEK,
-          FaceLandmark.LEFT_CHEEK,
-          FaceLandmark.NOSE_BASE
-        )
-        val landMarkTypesStrings = arrayOf(
-          "MOUTH_BOTTOM",
-          "MOUTH_RIGHT",
-          "MOUTH_LEFT",
-          "RIGHT_EYE",
-          "LEFT_EYE",
-          "RIGHT_EAR",
-          "LEFT_EAR",
-          "RIGHT_CHEEK",
-          "LEFT_CHEEK",
-          "NOSE_BASE"
-        )
-        for (i in landMarkTypes.indices) {
-          val landmark = face.getLandmark(landMarkTypes[i])
-          if (landmark == null) {
-            Log.v(
-              MANUAL_TESTING_LOG,
-              "No landmark of type: " + landMarkTypesStrings[i] + " has been detected"
-            )
-          } else {
-            val landmarkPosition = landmark.position
-            val landmarkPositionStr =
-              String.format(Locale.US, "x: %f , y: %f", landmarkPosition.x, landmarkPosition.y)
-            Log.v(
-              MANUAL_TESTING_LOG,
-              "Position for face landmark: " +
-                landMarkTypesStrings[i] +
-                " is :" +
-                landmarkPositionStr
-            )
-          }
+    override fun detectInImage(image: InputImage): Task<List<Face>> {
+        return detector.process(image)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun onSuccess(
+        results: List<Face>,
+        image: Bitmap?,
+        graphicOverlay: GraphicOverlay
+    ) {
+        for (face in results) {
+            graphicOverlay.add(FaceGraphic(graphicOverlay, face, context))
+            image?.let { bitmap ->
+                val croppedImage: Bitmap = BitmapUtils.cropBitmap(bitmap, face.boundingBox)
+                val faceExpressions: List<Classifier.Recognition> =
+                    classifier.recognizeImage(croppedImage)
+                if (faceExpressions.isNotEmpty()) {
+                    callback.onSuccess(faceExpressions.first())
+                    Log.d("_dev_", faceExpressions.first().title)
+                }
+            }
         }
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face left eye open probability: " + face.leftEyeOpenProbability
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face right eye open probability: " + face.rightEyeOpenProbability
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face smiling probability: " + face.smilingProbability
-        )
-        Log.v(
-          MANUAL_TESTING_LOG,
-          "face tracking id: " + face.trackingId
-        )
-      }
     }
-  }
+
+    override fun onFailure(e: Exception) {
+        callback.onError(e)
+    }
+
+    companion object {
+        private const val TAG = "FaceDetectorProcessor"
+        private fun logExtrasForTesting(face: Face?) {
+            if (face != null) {
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face bounding box: " + face.boundingBox.flattenToString()
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face Euler Angle X: " + face.headEulerAngleX
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face Euler Angle Y: " + face.headEulerAngleY
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face Euler Angle Z: " + face.headEulerAngleZ
+                )
+                // All landmarks
+                val landMarkTypes = intArrayOf(
+                    FaceLandmark.MOUTH_BOTTOM,
+                    FaceLandmark.MOUTH_RIGHT,
+                    FaceLandmark.MOUTH_LEFT,
+                    FaceLandmark.RIGHT_EYE,
+                    FaceLandmark.LEFT_EYE,
+                    FaceLandmark.RIGHT_EAR,
+                    FaceLandmark.LEFT_EAR,
+                    FaceLandmark.RIGHT_CHEEK,
+                    FaceLandmark.LEFT_CHEEK,
+                    FaceLandmark.NOSE_BASE
+                )
+                val landMarkTypesStrings = arrayOf(
+                    "MOUTH_BOTTOM",
+                    "MOUTH_RIGHT",
+                    "MOUTH_LEFT",
+                    "RIGHT_EYE",
+                    "LEFT_EYE",
+                    "RIGHT_EAR",
+                    "LEFT_EAR",
+                    "RIGHT_CHEEK",
+                    "LEFT_CHEEK",
+                    "NOSE_BASE"
+                )
+                for (i in landMarkTypes.indices) {
+                    val landmark = face.getLandmark(landMarkTypes[i])
+                    if (landmark == null) {
+                        Log.v(
+                            MANUAL_TESTING_LOG,
+                            "No landmark of type: " + landMarkTypesStrings[i] + " has been detected"
+                        )
+                    } else {
+                        val landmarkPosition = landmark.position
+                        val landmarkPositionStr =
+                            String.format(
+                                Locale.US,
+                                "x: %f , y: %f",
+                                landmarkPosition.x,
+                                landmarkPosition.y
+                            )
+                        Log.v(
+                            MANUAL_TESTING_LOG,
+                            "Position for face landmark: " +
+                                    landMarkTypesStrings[i] +
+                                    " is :" +
+                                    landmarkPositionStr
+                        )
+                    }
+                }
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face left eye open probability: " + face.leftEyeOpenProbability
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face right eye open probability: " + face.rightEyeOpenProbability
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face smiling probability: " + face.smilingProbability
+                )
+                Log.v(
+                    MANUAL_TESTING_LOG,
+                    "face tracking id: " + face.trackingId
+                )
+            }
+        }
+    }
+
+    interface Callback {
+        fun onSuccess(faceExpression: Classifier.Recognition)
+        fun onError(e: Exception)
+    }
 }

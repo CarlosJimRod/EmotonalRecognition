@@ -42,33 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="Hola"/>
-
-    <TextView
-        android:id="@+id/leye_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Emocion: "/>
-    <TextView
-        android:id="@+id/leyeresult_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Hola"/>
-
-    <TextView
-        android:id="@+id/reye_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Emocion: "/>
-    <TextView
-        android:id="@+id/reyeresult_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:text="Hola"/>
+        android:text="\?"/>
   </LinearLayout>
 
   <include

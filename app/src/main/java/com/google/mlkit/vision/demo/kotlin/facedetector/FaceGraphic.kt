@@ -244,10 +244,6 @@ class FaceGraphic constructor(overlay: GraphicOverlay?, private val face: Face, 
     drawFaceLandmark(canvas, FaceLandmark.RIGHT_EYE)
     drawFaceLandmark(canvas, FaceLandmark.LEFT_CHEEK)
     drawFaceLandmark(canvas, FaceLandmark.RIGHT_CHEEK)
-
-    val activity = context as? CameraXLivePreviewActivity
-
-    activity?.showResult(face)
   }
 
   private fun drawFaceLandmark(canvas: Canvas, @LandmarkType landmarkType: Int) {
