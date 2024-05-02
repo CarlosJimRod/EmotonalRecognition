@@ -23,8 +23,10 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+
 import com.google.android.gms.common.images.Size;
 import com.google.mlkit.vision.demo.preference.PreferenceUtils;
+
 import java.io.IOException;
 
 /** Preview the camera image in the screen. */
@@ -57,25 +59,6 @@ public class CameraSourcePreview extends ViewGroup {
       startRequested = true;
       startIfReady();
     }
-  }
-
-  public void start(CameraSource cameraSource, GraphicOverlay overlay) throws IOException {
-    this.overlay = overlay;
-    start(cameraSource);
-  }
-
-  public void stop() {
-    if (cameraSource != null) {
-      cameraSource.stop();
-    }
-  }
-
-  public void release() {
-    if (cameraSource != null) {
-      cameraSource.release();
-      cameraSource = null;
-    }
-    surfaceView.getHolder().getSurface().release();
   }
 
   private void startIfReady() throws IOException, SecurityException {

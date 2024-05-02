@@ -18,8 +18,10 @@ package com.google.mlkit.vision.demo.preference;
 
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
+
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.mlkit.vision.demo.R;
 
 /**
@@ -30,24 +32,22 @@ public class SettingsActivity extends AppCompatActivity {
 
   public static final String EXTRA_LAUNCH_SOURCE = "extra_launch_source";
 
-  /** Specifies where this activity is launched from. */
+  /**
+   * Specifies where this activity is launched from.
+   */
   @SuppressWarnings("NewApi") // CameraX is only available on API 21+
   public enum LaunchSource {
-    LIVE_PREVIEW(R.string.pref_screen_title_live_preview, LivePreviewPreferenceFragment.class),
-    STILL_IMAGE(R.string.pref_screen_title_still_image, StillImagePreferenceFragment.class),
-    CAMERAX_LIVE_PREVIEW(
-        R.string.pref_screen_title_camerax_live_preview,
-        CameraXLivePreviewPreferenceFragment.class),
-    CAMERAXSOURCE_DEMO(
-        R.string.pref_screen_title_cameraxsource_demo, CameraXSourceDemoPreferenceFragment.class);
+      CAMERAX_LIVE_PREVIEW(
+              R.string.pref_screen_title_camerax_live_preview,
+              CameraXLivePreviewPreferenceFragment.class);
 
-    private final int titleResId;
-    private final Class<? extends PreferenceFragment> prefFragmentClass;
+      private final int titleResId;
+      private final Class<? extends PreferenceFragment> prefFragmentClass;
 
-    LaunchSource(int titleResId, Class<? extends PreferenceFragment> prefFragmentClass) {
-      this.titleResId = titleResId;
-      this.prefFragmentClass = prefFragmentClass;
-    }
+      LaunchSource(int titleResId, Class<? extends PreferenceFragment> prefFragmentClass) {
+          this.titleResId = titleResId;
+          this.prefFragmentClass = prefFragmentClass;
+      }
   }
 
   @Override

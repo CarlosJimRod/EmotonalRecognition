@@ -417,8 +417,6 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
         )
     }
 
-    //protected abstract fun onSuccess(results: T, graphicOverlay: GraphicOverlay)
-
     protected abstract fun onSuccess(results: T, image: Bitmap?, graphicOverlay: GraphicOverlay)
 
     protected abstract fun onFailure(e: Exception)
